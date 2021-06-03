@@ -4,6 +4,7 @@ FROM python:3.9
 
 ENV APP_NAME=oc-core.py
 
+COPY oc-core.conf /code/oc-core.conf
 COPY "$APP_NAME" /code/"$APP_NAME"
 
 WORKDIR /code

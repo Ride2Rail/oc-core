@@ -9,6 +9,7 @@ import aiohttp
 import asyncio
 import time
 
+from r2r_offer_utils.cache_operations import read_data_from_cache_wrapper
 from r2r_offer_utils.logging import setup_logger
 
 
@@ -32,17 +33,17 @@ logger.setLevel(logging.INFO)
 
 async def call_fc_service(session, service_name, request_id):
     
-    logger.info(f'Sending request to {service_name}...')
+    logger.info(f'o-o-o-o-o-o-o-o Sending request to {service_name}... o-o-o-o-o-o-o-o')
     try:
         async with session.request(method='POST',
                                    url = f'http://{service_name}:5000/compute',
                                    json = {'request_id': request_id},
                                    headers = {'Content-Type': 'application/json'}) as response:
                 json_response = await response.json()
-                logger.info(f'Received response from {service_name}.')
+                logger.info(f'o-o-o-o-o-o-o-o Received response from {service_name}. o-o-o-o-o-o-o-o')
                 return json_response
     except:
-        logger.info(f'Something went wrong in {service_name}.')
+        logger.info(f'X-X-X-X-X-X Something went wrong in {service_name}. X-X-X-X-X-X')
         response = app.response_class(
         response=f'{{"request_id": "{request_id}"}}',
         status=500,
@@ -50,11 +51,11 @@ async def call_fc_service(session, service_name, request_id):
         return response
         
         
-async def send_requests(request_id):
+async def send_requests_to_fcs(request_id):
     
     logger.info('Handling asynchronous requests.')
     
-    service_names = ['time-fc', 'weather-fc']
+    service_names = ['time-fc', 'weather-fc', 'price-fc']
     async with aiohttp.ClientSession() as session:
         tasks = []
         for sn in service_names:
@@ -75,13 +76,13 @@ def handle_request():
     # send the TRIAS to the trias-extractor
     logger.info('Sending POST request to trias-extractor...')
     trias_extractor_response = requests.post(url = 'http://trias-extractor:5000/extract',
-                                   data = trias_data, #{"request_id": "#31:4265-#24:10239"},
-                                   headers={'Content-Type': 'application/xml'}).json()
+                                             data = trias_data, #{"request_id": "#31:4265-#24:10239"},
+                                             headers={'Content-Type': 'application/xml'}).json()
     logger.info('Received response from trias-extractor.')
     request_id = str(trias_extractor_response['request_id'])
     
     """
-    # synchronous version
+    # call the feature collectors (synchronous version)
     logger.info('Sending POST request to time-fc...')
     time_fc_response = requests.post(url = 'http://time-fc:5000/compute',
                                      json = {'request_id': "#31:4265-#24:10239"},
@@ -95,12 +96,30 @@ def handle_request():
     logger.info('Received response from weather-fc.')
     """
     
-    # asyncrhronous version
+    # call the feature collectors (asyncrhronous version)
     t0 = time.time()
-    asyncio.run(send_requests(request_id))
+    asyncio.run(send_requests_to_fcs(request_id))
     t1 = time.time()
     logger.info(f'Done in {t1-t0} seconds.')
     
+    # aggregate factors
+    output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(pa_cache=cache, pa_request_id=request_id,
+                                                                               pa_offer_level_items=['total_price', 
+                                                                                                     'ticket_coverage',
+                                                                                                     'duration',
+                                                                                                     'time_to_departure',
+                                                                                                     'rush_overlap',
+                                                                                                     'waiting_time'],
+                                                                               pa_tripleg_level_items=['start_time', 'end_time'])
+    
+    for offer_id in output_offer_level['offer_ids']:
+        logger.info('Total price: ' + str(output_offer_level[offer_id]['total_price']))
+        logger.info('Ticket coverage: ' + str(output_offer_level[offer_id]['ticket_coverage']))
+        logger.info('Duration: ' + str(output_offer_level[offer_id]['duration']))
+        logger.info('Time to departure: ' + str(output_offer_level[offer_id]['time_to_departure']))
+        logger.info('Rush hour overlap: ' + str(output_offer_level[offer_id]['rush_overlap']))
+        logger.info('Waiting time: ' + str(output_offer_level[offer_id]['waiting_time']))
+
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',
         status=200,
