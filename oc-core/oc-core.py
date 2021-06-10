@@ -49,13 +49,25 @@ async def call_fc_service(session, service_name, request_id):
         status=500,
         mimetype='application/json')
         return response
-        
-        
+
+"""
+ISSUES:
+- in traffic-fc we need to enter a valid API key in traffic.conf
+- should be spelled enviroNmental instead of enviromental
+- cannot find weather.conf and 'mapping' folder in weather-fc; Dockerfile should be updated
+- see errors.txt for weather-fc
+"""     
 async def send_requests_to_fcs(request_id):
     
     logger.info('Handling asynchronous requests.')
     
-    service_names = ['time-fc', 'weather-fc', 'price-fc']
+    service_names = ['time-fc', 
+                     'weather-fc', 
+                     'price-fc', 
+                     'traffic-fc', 
+                     'enviromental-fc', 
+                     'position-fc',
+                     'active-fc']
     async with aiohttp.ClientSession() as session:
         tasks = []
         for sn in service_names:
@@ -106,19 +118,48 @@ def handle_request():
     output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(pa_cache=cache, pa_request_id=request_id,
                                                                                pa_offer_level_items=['total_price', 
                                                                                                      'ticket_coverage',
+                                                                                                     'can_share_cost',
                                                                                                      'duration',
                                                                                                      'time_to_departure',
                                                                                                      'rush_overlap',
-                                                                                                     'waiting_time'],
+                                                                                                     'waiting_time',
+                                                                                                     'traffic_ratio',
+                                                                                                     'total_co2_offer',
+                                                                                                     'co2_per_km_offer',
+                                                                                                     'road_dist_norm',
+                                                                                                     'total_stops_norm',
+                                                                                                     'total_legs_norm',
+                                                                                                     'ratio_dist_norm',
+                                                                                                     'leg_fraction',
+                                                                                                     'bike_walk_distance',
+                                                                                                     'total_walk_distance',
+                                                                                                     'total_distance',
+                                                                                                     'bike_walk_legs',
+                                                                                                     'weather'],
                                                                                pa_tripleg_level_items=['start_time', 'end_time'])
     
     for offer_id in output_offer_level['offer_ids']:
+        logger.info('***************************')
         logger.info('Total price: ' + str(output_offer_level[offer_id]['total_price']))
         logger.info('Ticket coverage: ' + str(output_offer_level[offer_id]['ticket_coverage']))
+        logger.info('Can share cost: ' + str(output_offer_level[offer_id]['can_share_cost']))
         logger.info('Duration: ' + str(output_offer_level[offer_id]['duration']))
         logger.info('Time to departure: ' + str(output_offer_level[offer_id]['time_to_departure']))
         logger.info('Rush hour overlap: ' + str(output_offer_level[offer_id]['rush_overlap']))
         logger.info('Waiting time: ' + str(output_offer_level[offer_id]['waiting_time']))
+        logger.info('Traffic ratio: ' + str(output_offer_level[offer_id]['traffic_ratio']))
+        logger.info('Total co2: ' + str(output_offer_level[offer_id]['total_co2_offer']))
+        logger.info('co2 per km: ' + str(output_offer_level[offer_id]['co2_per_km_offer']))
+        logger.info('Road distance: ' + str(output_offer_level[offer_id]['road_dist_norm']))
+        logger.info('Total stops: ' + str(output_offer_level[offer_id]['total_stops_norm']))
+        logger.info('Total legs: ' + str(output_offer_level[offer_id]['total_legs_norm']))
+        logger.info('Ratio distance: ' + str(output_offer_level[offer_id]['ratio_dist_norm']))
+        logger.info('Leg fraction: ' + str(output_offer_level[offer_id]['leg_fraction']))
+        logger.info('Bike walk distance: ' + str(output_offer_level[offer_id]['bike_walk_distance']))
+        logger.info('Total walk distance: ' + str(output_offer_level[offer_id]['total_walk_distance']))
+        logger.info('Total distance: ' + str(output_offer_level[offer_id]['total_distance']))
+        logger.info('Bike walk legs: ' + str(output_offer_level[offer_id]['bike_walk_legs']))
+        logger.info('Weather: ' + str(output_offer_level[offer_id]['weather']))
 
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',

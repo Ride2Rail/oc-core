@@ -1,0 +1,21 @@
+[submodule "traffic-fc"]
+	path = traffic-fc
+	url = https://github.com/Ride2Rail/traffic-fc.git
+[submodule "enviromental-fc"]
+	path = enviromental-fc
+	url = https://github.com/Ride2Rail/enviromental-fc.git
+[submodule "position-fc"]
+	path = position-fc
+	url = https://github.com/Ride2Rail/position-fc.git
+[submodule "active-fc"]
+	path = active-fc
+	url = https://github.com/Ride2Rail/active-fc.git
+[submodule "weather-fc"]
+	path = weather-fc
+	url = https://github.com/Ride2Rail/weather-fc.git
+[submodule "price-fc"]
+	path = price-fc
+	url = https://github.com/Ride2Rail/price-fc.git
+[submodule "time-fc"]
+	path = time-fc
+	url = https://github.com/Ride2Rail/time-fc.git
