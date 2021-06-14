@@ -25,6 +25,7 @@ services:
       FLASK_ENV: development
     volumes:
       - ./oc-core/oc-core.py:/code/oc-core.py
+      - ./oc-core/determinant_factors.py:/code/determinant_factors.py
     ports:
       - "5000:5000"
     depends_on:
@@ -91,5 +92,13 @@ services:
     build: ./active-fc
     ports:
       - "5008:5000"
+    environment:
+      FLASK_ENV: development
+      
+  tsp-fc:
+    container_name: tsp-fc
+    build: ./tsp-fc
+    ports:
+      - "5009:5000"
     environment:
       FLASK_ENV: development
