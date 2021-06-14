@@ -119,8 +119,10 @@ def handle_request():
     output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(pa_cache=cache, 
                                                                             pa_request_id=request_id,                                                                                                                   pa_offer_level_items=determinant_factors.determinant_factors,
                                                                             pa_tripleg_level_items=[])
-        
+    
+    category_scores = {}
     for offer_id in output_offer_level['offer_ids']:
+        category_scores[offer_id] = {}
         logger.info(f'**************Offer id: {offer_id}')
         for cat in determinant_factors.categories:
             logger.info(f'\t{cat.upper()}')
@@ -138,6 +140,14 @@ def handle_request():
                     logger.info(f'\t\t\tOriginal score: {original_factor_score}')
                     logger.info(f'\t\t\tNew factor score: {factor_score}')
             logger.info(f'\tCategory score: {category_score}')
+            category_scores[offer_id][cat] = category_score
+            
+    print('\n\n**************************************\n\n', flush=True)
+    print('CATEGORY SCORES', flush=True)
+    for offer_id in category_scores:
+        print(f'\nOffer id: {offer_id}', flush=True)
+        for cat in sorted(category_scores[offer_id], key=category_scores[offer_id].get, reverse=True):
+            print(f'{cat}: {category_scores[offer_id][cat]}', flush=True)
                 
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',
