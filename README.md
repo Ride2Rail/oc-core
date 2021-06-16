@@ -1,4 +1,4 @@
-# Offer Categorizer Core
+# Offer Categorizer Core (under development)
 
 ## Overview
 
