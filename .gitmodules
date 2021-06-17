@@ -22,3 +22,6 @@
 [submodule "tsp-fc"]
 	path = tsp-fc
 	url = https://github.com/Ride2Rail/tsp-fc.git
+[submodule "trias-extractor"]
+	path = trias-extractor
+	url = https://github.com/Ride2Rail/trias-extractor.git
