@@ -22,3 +22,6 @@
 [submodule "trias-extractor"]
 	path = trias-extractor
 	url = https://github.com/Ride2Rail/trias-extractor.git
+[submodule "time-fc"]
+	path = time-fc
+	url = https://github.com/Ride2Rail/time-fc.git

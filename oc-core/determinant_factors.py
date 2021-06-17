@@ -53,12 +53,11 @@ categories = {'quick' : ['duration',
                                'cleanliness',
                                'seating_quality'],
               # missing starting point and end point
-              # what exactly is road_dist_norm?
-              'door-to-door' : ['road_dist_norm',
-                                'total_walk_distance'],
+              'door-to-door' : ['total_walk_distance'],
               'environmentally_friendly' : ['total_co2_offer',
                                             'co2_per_km_offer'],
               'short' : ['total_distance',
+                         'road_dist_norm',
                          'total_stops_norm'],
               'multitasking' : ['space_available',
                                 'silence_area_presence',
@@ -68,7 +67,9 @@ categories = {'quick' : ['duration',
                                 'privacy_level'],
               'social' : [],
               'panoramic' : [],
-              'healthy' : ['bike_walk_distance',
+              'healthy' : ['leg_fraction',
+                           'total_walk_distance',
+                           'bike_walk_distance',
                            'bike_walk_legs']
 }
 

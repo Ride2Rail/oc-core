@@ -61,14 +61,16 @@ async def send_requests_to_fcs(request_id):
     
     logger.info('Handling asynchronous requests.')
     
-    service_names = ['time-fc', 
+    service_names = [
+                     'time-fc', 
                      'weather-fc', 
                      'price-fc', 
                      'traffic-fc', 
                      'enviromental-fc', 
                      'position-fc',
                      'active-fc',
-                     'tsp-fc']
+                     'tsp-fc'
+                    ]
     async with aiohttp.ClientSession() as session:
         tasks = []
         for sn in service_names:
@@ -132,23 +134,31 @@ def handle_request():
                 logger.info(f'\t\t{fact}')
                 original_factor_score = output_offer_level[offer_id][fact]
                 if original_factor_score:
-                    original_factor_score = float(original_factor_score)
+                    try:
+                        original_factor_score = float(original_factor_score)
+                    except ValueError:
+                        print(f'Exception with {fact}', flush=True)
+                        continue
                     factor_importance = determinant_factors.rod_weights[n_factors][i]
                     factor_score = original_factor_score * factor_importance
                     category_score += factor_score
+                    
                     logger.info(f'\t\t\tFactor importance: {factor_importance}')
                     logger.info(f'\t\t\tOriginal score: {original_factor_score}')
                     logger.info(f'\t\t\tNew factor score: {factor_score}')
+                    
             logger.info(f'\tCategory score: {category_score}')
             category_scores[offer_id][cat] = category_score
-            
+    
+    
     print('\n\n**************************************\n\n', flush=True)
     print('CATEGORY SCORES', flush=True)
     for offer_id in category_scores:
         print(f'\nOffer id: {offer_id}', flush=True)
         for cat in sorted(category_scores[offer_id], key=category_scores[offer_id].get, reverse=True):
             print(f'{cat}: {category_scores[offer_id][cat]}', flush=True)
-                
+    
+    
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',
         status=200,
