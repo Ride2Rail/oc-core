@@ -27,6 +27,7 @@ cache = redis.Redis(host=config.get('cache', 'host'),
                     port=config.get('cache', 'port'),
                     decode_responses=True)
 
+TIMEOUT = float(config.get('running', 'timeout'))
 
 # init logging
 logger, ch = setup_logger()
@@ -75,8 +76,12 @@ async def send_requests_to_fcs(request_id):
         tasks = []
         for sn in service_names:
             tasks.append(asyncio.ensure_future(call_fc_service(session, sn, request_id)))
-        
-        await asyncio.gather(*tasks)
+        try:
+            await asyncio.wait_for(asyncio.gather(*tasks), timeout=TIMEOUT)
+        except asyncio.TimeoutError:
+            logger.info(f'Timeout (after {TIMEOUT} seconds)')
+            return
+    
     logger.info('All requests have been handled.')
         
       
