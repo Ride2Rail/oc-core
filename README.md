@@ -15,7 +15,11 @@ Requests are carried out through HTTP protocol, via POST. It is noteworthy that,
 
 ## Usage
 
-To be able to run the application, you first need to upload the TRIAS files into the ``trias_extractor/trias`` folder. See https://github.com/Ride2Rail/trias-extractor for further details on how to initialize the trias-extractor module.
+To be able to run the application, you first need to:
+- upload the TRIAS files into the ``trias-extractor/trias`` folder (you can find the TRIAS files in the following repository: https://github.com/Ride2Rail/trias-xml-examples).
+- run the load.sh script in ``trias-extractor``.
+
+For all details on the trias-extractor module, please see https://github.com/Ride2Rail/trias-extractor.
 
 ### Local development (debug on)
 
