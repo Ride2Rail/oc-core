@@ -45,6 +45,14 @@ async def call_fc_service(session, service_name, request_id):
                 json_response = await response.json()
                 logger.info(f'o-o-o-o-o-o-o-o Received response from {service_name}. o-o-o-o-o-o-o-o')
                 return json_response
+            
+    except asyncio.CancelledError:
+        logger.info(f'O-o-O-o-O-o-O A timeout occurred in {service_name}. O-o-O-o-O-o-O')
+        response = app.response_class(
+        response=f'{{"request_id": "{request_id}"}}',
+        status=504,
+        mimetype='application/json')
+        return response
     except:
         logger.info(f'X-X-X-X-X-X Something went wrong in {service_name}. X-X-X-X-X-X')
         response = app.response_class(
@@ -79,7 +87,7 @@ async def send_requests_to_fcs(request_id):
         try:
             await asyncio.wait_for(asyncio.gather(*tasks), timeout=TIMEOUT)
         except asyncio.TimeoutError:
-            logger.info(f'Timeout (after {TIMEOUT} seconds)')
+            logger.info(f'O-o-O-o-O-o-O Timeout (after {TIMEOUT} seconds) O-o-O-o-O-o-O')
             return
     
     logger.info('All requests have been handled.')
