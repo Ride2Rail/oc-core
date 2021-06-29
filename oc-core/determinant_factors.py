@@ -31,7 +31,8 @@ determinant_factors = ['duration',
                      'ratio_dist_norm',
                      'leg_fraction',
                      'bike_walk_distance',
-                     'bike_walk_legs']
+                     'bike_walk_legs',
+                     'panoramic']
 
 # PLEASE NOTE:
 # the order of the determinant factors within each category determines their ROD weights
@@ -50,7 +51,7 @@ categories = {'quick' : ['duration',
                          'ticket_coverage'],
               'comfortable' : ['user_feedback',
                                'cleanliness',
-                               'seating_quality'
+                               'seating_quality',
                                'total_legs_norm'],
               # missing starting point and end point
               'door-to-door' : ['total_walk_distance'],

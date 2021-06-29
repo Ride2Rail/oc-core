@@ -88,6 +88,8 @@ async def send_requests_to_fcs(request_id):
         try:
             await asyncio.wait_for(asyncio.gather(*tasks), timeout=TIMEOUT)
         except asyncio.TimeoutError:
+            for t in tasks:
+                t.cancel()
             logger.info(f'O-o-O-o-O-o-O Timeout (after {TIMEOUT} seconds) O-o-O-o-O-o-O')
             return
     
@@ -108,29 +110,15 @@ def handle_request():
                                              headers={'Content-Type': 'application/xml'}).json()
     logger.info('Received response from trias-extractor.')
     request_id = str(trias_extractor_response['request_id'])
-    
-    """
-    # call the feature collectors (synchronous version)
-    logger.info('Sending POST request to time-fc...')
-    time_fc_response = requests.post(url = 'http://time-fc:5000/compute',
-                                     json = {'request_id': "#31:4265-#24:10239"},
-                                     headers={'Content-Type': 'application/json'}).json()
-    logger.info('Received response from time-fc.')
-    
-    logger.info('Sending POST request to weather-fc...')
-    weather_fc_response = requests.post(url = 'http://weather-fc:5000/compute',
-                                        json = {'request_id': "#31:4265-#24:10239"},
-                                        headers={'Content-Type': 'application/json'})
-    logger.info('Received response from weather-fc.')
-    """
-    
+
+
     # call the feature collectors (asyncrhronous version)
     t0 = time.time()
     asyncio.run(send_requests_to_fcs(request_id))
     t1 = time.time()
     logger.info(f'Done in {t1-t0} seconds.')
     
-    # aggregate factors
+    # compute category scores
     output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(pa_cache=cache, 
                                                                             pa_request_id=request_id,                                                                                                                   pa_offer_level_items=determinant_factors.determinant_factors,
                                                                             pa_tripleg_level_items=[])
