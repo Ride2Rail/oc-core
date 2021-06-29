@@ -35,9 +35,9 @@ services:
   time-fc:
     container_name: time-fc
     build: ./time-fc/
-    #volumes:
-      # we need to mount a single file, not to overwrite the whole folder
-      #- ./time-fc/time-fc.py:/code/time-fc.py
+    volumes:
+       #we need to mount a single file, not to overwrite the whole folder
+      - ./time-fc/time-fc.py:/code/time-fc.py
     environment:
       FLASK_ENV: development
     ports:
@@ -101,5 +101,13 @@ services:
     build: ./tsp-fc
     ports:
       - "5009:5000"
+    environment:
+      FLASK_ENV: development
+      
+  panoramic-fc:
+    container_name: panoramic-fc
+    build: ./panoramic-fc
+    ports:
+      - "5010:5000"
     environment:
       FLASK_ENV: development

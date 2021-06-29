@@ -78,7 +78,8 @@ async def send_requests_to_fcs(request_id):
                      'enviromental-fc', 
                      'position-fc',
                      'active-fc',
-                     'tsp-fc'
+                     'tsp-fc',
+                     'panoramic-fc'
                     ]
     async with aiohttp.ClientSession() as session:
         tasks = []
@@ -171,6 +172,7 @@ def handle_request():
         for cat in sorted(category_scores[offer_id], key=category_scores[offer_id].get, reverse=True):
             print(f'{cat}: {category_scores[offer_id][cat]}', flush=True)
     
+    # here we should store 'category_scores' into the cache
     
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',

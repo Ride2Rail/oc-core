@@ -25,3 +25,6 @@
 [submodule "time-fc"]
 	path = time-fc
 	url = https://github.com/Ride2Rail/time-fc.git
+[submodule "panoramic-fc"]
+	path = panoramic-fc
+	url = https://github.com/Ride2Rail/panoramic-fc.git
