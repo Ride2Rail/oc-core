@@ -11,7 +11,7 @@ import time
 
 import determinant_factors
 
-from r2r_offer_utils.cache_operations import read_data_from_cache_wrapper
+from r2r_offer_utils.cache_operations import read_data_from_cache_wrapper, store_simple_data_to_cache_wrapper
 from r2r_offer_utils.logging import setup_logger
 
 
@@ -93,7 +93,6 @@ async def send_requests_to_fcs(request_id):
     
     logger.info('All requests have been handled.')
         
-      
         
 @app.route('/compute', methods=['POST'])
 def handle_request():
@@ -144,7 +143,8 @@ def handle_request():
             logger.info(f'\t{cat.upper()}')
             n_factors = len(determinant_factors.categories[cat])
             category_score = 0
-            for i, fact in enumerate(determinant_factors.categories[cat]):
+            rod_index = 0
+            for fact in determinant_factors.categories[cat]:
                 logger.info(f'\t\t{fact}')
                 original_factor_score = output_offer_level[offer_id][fact]
                 if original_factor_score:
@@ -153,9 +153,10 @@ def handle_request():
                     except ValueError:
                         print(f'Exception with {fact}', flush=True)
                         continue
-                    factor_importance = determinant_factors.rod_weights[n_factors][i]
+                    factor_importance = determinant_factors.rod_weights[n_factors][rod_index]
                     factor_score = original_factor_score * factor_importance
                     category_score += factor_score
+                    rod_index += 1
                     
                     logger.info(f'\t\t\tFactor importance: {factor_importance}')
                     logger.info(f'\t\t\tOriginal score: {original_factor_score}')
@@ -171,9 +172,20 @@ def handle_request():
         print(f'\nOffer id: {offer_id}', flush=True)
         for cat in sorted(category_scores[offer_id], key=category_scores[offer_id].get, reverse=True):
             print(f'{cat}: {category_scores[offer_id][cat]}', flush=True)
+
+
+    # store 'category_scores' into the cache
+    pipe = cache.pipeline()
+    for offer_id in category_scores:
+        temp_key = "{}:{}:{}".format(request_id, offer_id, 'categories')
+        pipe.hmset(temp_key, category_scores[offer_id])
+    pipe.execute()
     
-    # here we should store 'category_scores' into the cache
-    
+    # test if the data was written in cache
+    #temp_key = "{}:{}:{}".format(request_id, '2ce836dd-1533-4207-99b5-d0c78f2e9654', 'categories')
+    #r = cache.hgetall(temp_key)
+    #print(f'\nWRITTEN IN CACHE:', r, flush=True)
+
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',
         status=200,
