@@ -65,9 +65,9 @@ services:
     depends_on:
       - cache
 
-  enviromental-fc:
-    container_name: enviromental-fc
-    build: ./enviromental-fc
+  environmental-fc:
+    container_name: environmental-fc
+    build: ./environmental-fc
     environment:
       FLASK_ENV: production
     depends_on:
@@ -121,11 +121,11 @@ services:
       - 5000:5000
     depends_on:
       - cache
-    link;
+    link:
       - trias-extractor
       - cache
       - active-fc
-      - enviromental-fc
+      - environmental-fc
       - panoramic-fc
       - position-fc
       - price-fc
