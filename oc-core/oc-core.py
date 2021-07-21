@@ -65,7 +65,6 @@ async def call_fc_service(session, service_name, request_id):
 """
 ISSUES:
 - in traffic-fc we need to enter a valid API key in traffic.conf
-- should be spelled enviroNmental instead of enviromental
 """
 async def send_requests_to_fcs(request_id):
     
@@ -76,7 +75,7 @@ async def send_requests_to_fcs(request_id):
                      'weather-fc', 
                      'price-fc', 
                      'traffic-fc', 
-                     'enviromental-fc', 
+                     'environmental-fc', 
                      'position-fc',
                      'active-fc',
                      'tsp-fc',
