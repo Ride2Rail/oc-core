@@ -1,6 +1,13 @@
 version: "3.9"
 
 services:
+  cache:
+    container_name: cache
+    image: redis:alpine
+    volumes:
+      - ./trias-extractor/data:/data
+    entrypoint: ["redis-server", "--appendonly", "yes"]
+
   trias-extractor:
     container_name: trias-extractor
     build:
@@ -8,16 +15,99 @@ services:
       dockerfile: Dockerfile.production
     environment:
       FLASK_ENV: production
-    ports:
-      - "5001:5000"
+    depends_on:
+      - cache
 
-  cache:
-    container_name: cache
-    image: "redis:alpine"
+  time-fc:
+    container_name: time-fc
+    build: ./time-fc/
     volumes:
-      - ./trias-extractor/data:/data
-    entrypoint: ["redis-server", "--appendonly", "yes"]
-    
+       # we need to mount a single file, not to overwrite the whole folder
+      - ./time-fc/time-fc.py:/code/time-fc.py
+    environment:
+      FLASK_ENV: development
+    depends_on:
+      - cache
+
+  weather-fc:
+    container_name: weather-fc
+    build: ./weather-fc
+    volumes:
+      - ./weather-fc/weather.py:/code/weather.py
+    environment:
+      FLASK_ENV: development
+    link:
+      - owm_proxy
+
+  owm_proxy:
+    container_name: owm_proxy
+    build: ./weather-fc/owm_proxy
+    volumes:
+      - ./weather-fc/owm_proxy/owm_proxy.py:/code/owm_proxy.py
+    environment:
+      FLASK_ENV: development
+    depends_on:
+      - weather-fc
+
+  price-fc:
+    container_name: price-fc
+    build: ./price-fc
+    environment:
+      FLASK_ENV: production
+    depends_on:
+      - cache
+
+  traffic-fc:
+    container_name: traffic-fc
+    build: ./traffic-fc
+    environment:
+      FLASK_ENV: production
+    depends_on:
+      - cache
+
+  enviromental-fc:
+    container_name: enviromental-fc
+    build: ./enviromental-fc
+    environment:
+      FLASK_ENV: production
+    depends_on:
+      - cache
+      
+  position-fc:
+    container_name: position-fc
+    build: ./position-fc
+    environment:
+      FLASK_ENV: production
+    depends_on:
+      - cache
+      
+  active-fc:
+    container_name: active-fc
+    build: ./active-fc
+    environment:
+      FLASK_ENV: production
+    depends_on:
+      - cache
+      
+  tsp-fc:
+    container_name: tsp-fc
+    build: ./tsp-fc
+    environment:
+      FLASK_ENV: production
+    depends_on:
+      - cache
+      
+  panoramic-fc:
+    container_name: panoramic-fc
+    build: ./panoramic-fc
+    volumes:
+      - ./panoramic-fc/utils.py:/code/utils.py
+      - ./panoramic-fc/panoramic.py:/code/panoramic.py
+    environment:
+      FLASK_ENV: development
+    depends_on:
+      - cache
+
   oc-core:
     container_name: oc-core
     build: ./oc-core/
@@ -28,96 +118,18 @@ services:
       - ./oc-core/oc-core.conf:/code/oc-core.conf
       - ./oc-core/determinant_factors.py:/code/determinant_factors.py
     ports:
-      - "5000:5000"
+      - 5000:5000
     depends_on:
-      - "cache"
-      
-  time-fc:
-    container_name: time-fc
-    build: ./time-fc/
-    volumes:
-       #we need to mount a single file, not to overwrite the whole folder
-      - ./time-fc/time-fc.py:/code/time-fc.py
-    environment:
-      FLASK_ENV: development
-    ports:
-      - "5002:5000"
-  
-  weather-fc:
-    container_name: weather-fc
-    build: ./weather-fc/
-    volumes:
-      - ./weather-fc/weather.py:/code/weather.py
-    ports:
-      - "5003:5000"
-    environment:
-      FLASK_ENV: development
-
-  owm_proxy:
-    container_name: owm_proxy
-    build: ./weather-fc/owm_proxy/
-    volumes:
-      - ./weather-fc/owm_proxy/owm_proxy.py:/code/owm_proxy.py
-    ports:
-      - "5013:5000"
-    environment:
-      FLASK_ENV: development
-      
-  price-fc:
-    container_name: price-fc
-    build: ./price-fc/
-    ports:
-      - "5004:5000"
-    environment:
-      FLASK_ENV: production
-      
-  traffic-fc:
-    container_name: traffic-fc
-    build: ./traffic-fc
-    ports:
-      - "5005:5000"
-    environment:
-      FLASK_ENV: production
-      
-  enviromental-fc:
-    container_name: enviromental-fc
-    build: ./enviromental-fc
-    ports:
-      - "5006:5000"
-    environment:
-      FLASK_ENV: production
-      
-  position-fc:
-    container_name: position-fc
-    build: ./position-fc
-    ports:
-      - "5007:5000"
-    environment:
-      FLASK_ENV: production
-      
-  active-fc:
-    container_name: active-fc
-    build: ./active-fc
-    ports:
-      - "5008:5000"
-    environment:
-      FLASK_ENV: production
-      
-  tsp-fc:
-    container_name: tsp-fc
-    build: ./tsp-fc
-    ports:
-      - "5009:5000"
-    environment:
-      FLASK_ENV: production
-      
-  panoramic-fc:
-    container_name: panoramic-fc
-    build: ./panoramic-fc
-    ports:
-      - "5010:5000"
-    volumes:
-      - ./panoramic-fc/utils.py:/code/utils.py
-      - ./panoramic-fc/panoramic.py:/code/panoramic.py
-    environment:
-      FLASK_ENV: development
+      - cache
+    link;
+      - trias-extractor
+      - cache
+      - active-fc
+      - enviromental-fc
+      - panoramic-fc
+      - position-fc
+      - price-fc
+      - time-fc
+      - traffic-fc
+      - tsp-fc
+      - weather-fc
