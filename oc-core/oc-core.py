@@ -39,33 +39,34 @@ async def call_fc_service(session, service_name, request_id):
     logger.info(f'o-o-o-o-o-o-o-o Sending request to {service_name}... o-o-o-o-o-o-o-o')
     try:
         async with session.request(method='POST',
-                                   url = f'http://{service_name}:5000/compute',
-                                   json = {'request_id': request_id},
-                                   headers = {'Content-Type': 'application/json'}) as response:
-                json_response = await response.json()
-                logger.info(f'o-o-o-o-o-o-o-o Received response from {service_name}. o-o-o-o-o-o-o-o')
-                return json_response
+                                   url=f'http://{service_name}:5000/compute',
+                                   json={'request_id': request_id},
+                                   headers={'Content-Type': 'application/json'}
+                                   ) as response:
+            json_response = await response.json()
+            logger.info(f'o-o-o-o-o-o-o-o Received response from {service_name}. o-o-o-o-o-o-o-o')
+            return json_response
             
     except asyncio.CancelledError:
         logger.info(f'O-o-O-o-O-o-O A timeout occurred in {service_name}. O-o-O-o-O-o-O')
-        response = app.response_class(
-        response=f'{{"request_id": "{request_id}"}}',
-        status=504,
-        mimetype='application/json')
+        response = app.response_class(response=f'{{"request_id": "{request_id}"}}',
+                                      status=504,
+                                      mimetype='application/json'
+                                      )
         return response
-    except:
+    except Exception:
         logger.info(f'X-X-X-X-X-X Something went wrong in {service_name}. X-X-X-X-X-X')
-        response = app.response_class(
-        response=f'{{"request_id": "{request_id}"}}',
-        status=500,
-        mimetype='application/json')
+        response = app.response_class(response=f'{{"request_id": "{request_id}"}}',
+                                      status=500,
+                                      mimetype='application/json'
+                                      )
         return response
 
 """
 ISSUES:
 - in traffic-fc we need to enter a valid API key in traffic.conf
 - should be spelled enviroNmental instead of enviromental
-"""     
+"""
 async def send_requests_to_fcs(request_id):
     
     logger.info('Handling asynchronous requests.')
@@ -105,12 +106,11 @@ def handle_request():
     
     # send the TRIAS to the trias-extractor
     logger.info('Sending POST request to trias-extractor...')
-    trias_extractor_response = requests.post(url = 'http://trias-extractor:5000/extract',
-                                             data = trias_data, #{"request_id": "#31:4265-#24:10239"},
+    trias_extractor_response = requests.post(url='http://trias-extractor:5000/extract',
+                                             data=trias_data, #{"request_id": "#31:4265-#24:10239"},
                                              headers={'Content-Type': 'application/xml'}).json()
     logger.info('Received response from trias-extractor.')
     request_id = str(trias_extractor_response['request_id'])
-
 
     # call the feature collectors (asyncrhronous version)
     t0 = time.time()
@@ -119,10 +119,13 @@ def handle_request():
     logger.info(f'Done in {t1-t0} seconds.')
     
     # compute category scores
-    output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(pa_cache=cache, 
-                                                                            pa_request_id=request_id,                                                                                                                   pa_offer_level_items=determinant_factors.determinant_factors,
-                                                                            pa_tripleg_level_items=[])
-    
+    output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(
+        pa_cache=cache,
+        pa_request_id=request_id,
+        pa_offer_level_items=determinant_factors.determinant_factors,
+        pa_tripleg_level_items=[]
+        )
+
     category_scores = {}
     for offer_id in output_offer_level['offer_ids']:
         category_scores[offer_id] = {}
@@ -152,15 +155,15 @@ def handle_request():
                     
             logger.info(f'\tCategory score: {category_score}')
             category_scores[offer_id][cat] = category_score
-    
-    
+
     print('\n\n**************************************\n\n', flush=True)
     print('CATEGORY SCORES', flush=True)
     for offer_id in category_scores:
         print(f'\nOffer id: {offer_id}', flush=True)
-        for cat in sorted(category_scores[offer_id], key=category_scores[offer_id].get, reverse=True):
+        for cat in sorted(category_scores[offer_id],
+                          key=category_scores[offer_id].get,
+                          reverse=True):
             print(f'{cat}: {category_scores[offer_id][cat]}', flush=True)
-
 
     # store 'category_scores' into the cache
     pipe = cache.pipeline()
@@ -170,9 +173,9 @@ def handle_request():
     pipe.execute()
     
     # test if the data was written in cache
-    #temp_key = "{}:{}:{}".format(request_id, '2ce836dd-1533-4207-99b5-d0c78f2e9654', 'categories')
-    #r = cache.hgetall(temp_key)
-    #print(f'\nWRITTEN IN CACHE:', r, flush=True)
+    # temp_key = "{}:{}:{}".format(request_id, '2ce836dd-1533-4207-99b5-d0c78f2e9654', 'categories')
+    # r = cache.hgetall(temp_key)
+    # print(f'\nWRITTEN IN CACHE:', r, flush=True)
 
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',
@@ -191,6 +194,6 @@ if __name__ == '__main__':
     os.environ["FLASK_ENV"] = "development"
 
     cache = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
-    #print(cache.keys())
+    # print(cache.keys())
 
     app.run(port=FLASK_PORT, debug=True)
