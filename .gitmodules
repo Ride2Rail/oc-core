@@ -3,7 +3,7 @@
 	url = https://github.com/Ride2Rail/traffic-fc.git
 [submodule "enviromental-fc"]
 	path = enviromental-fc
-	url = https://github.com/Ride2Rail/enviromental-fc.git
+	url = git@github.com:Ride2Rail/environmental-fc.git
 [submodule "position-fc"]
 	path = position-fc
 	url = https://github.com/Ride2Rail/position-fc.git
