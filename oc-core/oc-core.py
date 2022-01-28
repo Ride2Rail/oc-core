@@ -62,10 +62,7 @@ async def call_fc_service(session, service_name, request_id):
                                       )
         return response
 
-"""
-ISSUES:
-- in traffic-fc we need to enter a valid API key in traffic.conf
-"""
+
 async def send_requests_to_fcs(request_id):
     
     logger.info('Handling asynchronous requests.')
@@ -96,9 +93,9 @@ async def send_requests_to_fcs(request_id):
     logger.info('All requests have been handled.')
         
         
-@app.route('/compute', methods=['POST'])
-def handle_request():
-    
+@app.route('/<request_id>', methods=['GET'])
+def handle_request(request_id):
+    """
     # receive the TRIAS request data
     request.get_data()
     trias_data = request.data
@@ -110,8 +107,11 @@ def handle_request():
                                              headers={'Content-Type': 'application/xml'}).json()
     logger.info('Received response from trias-extractor.')
     request_id = str(trias_extractor_response['request_id'])
+    """
 
-    # call the feature collectors (asyncrhronous version)
+    logger.info('oc-core received request_id correctly')
+
+    # call the feature collectors
     t0 = time.time()
     asyncio.run(send_requests_to_fcs(request_id))
     t1 = time.time()
@@ -141,7 +141,7 @@ def handle_request():
                     try:
                         original_factor_score = float(original_factor_score)
                     except ValueError:
-                        print(f'Exception with {fact}', flush=True)
+                        logger.info(f'Exception with {fact}', flush=True)
                         continue
                     factor_importance = determinant_factors.rod_weights[n_factors][rod_index]
                     factor_score = original_factor_score * factor_importance
@@ -155,15 +155,6 @@ def handle_request():
             logger.info(f'\tCategory score: {category_score}')
             category_scores[offer_id][cat] = category_score
 
-    print('\n\n**************************************\n\n', flush=True)
-    print('CATEGORY SCORES', flush=True)
-    for offer_id in category_scores:
-        print(f'\nOffer id: {offer_id}', flush=True)
-        for cat in sorted(category_scores[offer_id],
-                          key=category_scores[offer_id].get,
-                          reverse=True):
-            print(f'{cat}: {category_scores[offer_id][cat]}', flush=True)
-
     # store 'category_scores' into the cache
     pipe = cache.pipeline()
     for offer_id in category_scores:
@@ -171,11 +162,6 @@ def handle_request():
         pipe.hmset(temp_key, category_scores[offer_id])
     pipe.execute()
     
-    # test if the data was written in cache
-    # temp_key = "{}:{}:{}".format(request_id, '2ce836dd-1533-4207-99b5-d0c78f2e9654', 'categories')
-    # r = cache.hgetall(temp_key)
-    # print(f'\nWRITTEN IN CACHE:', r, flush=True)
-
     response = app.response_class(
         response=f'{{"request_id": {request_id}}}',
         status=200,
@@ -193,6 +179,5 @@ if __name__ == '__main__':
     os.environ["FLASK_ENV"] = "development"
 
     cache = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
-    # print(cache.keys())
 
     app.run(port=FLASK_PORT, debug=True)
