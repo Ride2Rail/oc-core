@@ -95,19 +95,6 @@ async def send_requests_to_fcs(request_id):
         
 @app.route('/<request_id>', methods=['GET'])
 def handle_request(request_id):
-    """
-    # receive the TRIAS request data
-    request.get_data()
-    trias_data = request.data
-    
-    # send the TRIAS to the trias-extractor
-    logger.info('Sending POST request to trias-extractor...')
-    trias_extractor_response = requests.post(url='http://trias-extractor:5000/extract',
-                                             data=trias_data, #{"request_id": "#31:4265-#24:10239"},
-                                             headers={'Content-Type': 'application/xml'}).json()
-    logger.info('Received response from trias-extractor.')
-    request_id = str(trias_extractor_response['request_id'])
-    """
 
     logger.info('oc-core received request_id correctly')
 
@@ -141,7 +128,7 @@ def handle_request(request_id):
                     try:
                         original_factor_score = float(original_factor_score)
                     except ValueError:
-                        logger.info(f'Exception with {fact}', flush=True)
+                        logger.info(f'Exception with {fact}')
                         continue
                     factor_importance = determinant_factors.rod_weights[n_factors][rod_index]
                     factor_score = original_factor_score * factor_importance
@@ -162,12 +149,7 @@ def handle_request(request_id):
         pipe.hmset(temp_key, category_scores[offer_id])
     pipe.execute()
     
-    response = app.response_class(
-        response=f'{{"request_id": {request_id}}}',
-        status=200,
-        mimetype='application/json'
-    )
-    return response
+    return category_scores
     
     
 if __name__ == '__main__':
