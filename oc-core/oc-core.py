@@ -65,7 +65,7 @@ async def call_fc_service(session, service_name, request_id):
 
 async def send_requests_to_fcs(request_id):
     
-    logger.info('Handling asynchronous requests.')
+    logger.info('Handling asynchronous requests to feature-collectors.')
     
     service_names = [
                      'time-fc', 
@@ -90,19 +90,17 @@ async def send_requests_to_fcs(request_id):
             logger.info(f'O-o-O-o-O-o-O Timeout (after {TIMEOUT} seconds) O-o-O-o-O-o-O')
             return
     
-    logger.info('All requests have been handled.')
+    logger.info('All requests to feature-collectors have been handled.')
         
         
 @app.route('/<request_id>', methods=['GET'])
 def handle_request(request_id):
 
-    logger.info('oc-core received request_id correctly')
-
     # call the feature collectors
     t0 = time.time()
     asyncio.run(send_requests_to_fcs(request_id))
     t1 = time.time()
-    logger.info(f'Done in {t1-t0} seconds.')
+    logger.info(f'Feature-collectors done in {t1-t0} seconds.')
     
     # compute category scores
     output_offer_level, output_tripleg_level = read_data_from_cache_wrapper(
@@ -115,31 +113,22 @@ def handle_request(request_id):
     category_scores = {}
     for offer_id in output_offer_level['offer_ids']:
         category_scores[offer_id] = {}
-        logger.info(f'**************Offer id: {offer_id}')
         for cat in determinant_factors.categories:
-            logger.info(f'\t{cat.upper()}')
             n_factors = len(determinant_factors.categories[cat])
             category_score = 0
             rod_index = 0
             for fact in determinant_factors.categories[cat]:
-                logger.info(f'\t\t{fact}')
                 original_factor_score = output_offer_level[offer_id][fact]
                 if original_factor_score:
                     try:
                         original_factor_score = float(original_factor_score)
                     except ValueError:
-                        logger.info(f'Exception with {fact}')
                         continue
                     factor_importance = determinant_factors.rod_weights[n_factors][rod_index]
                     factor_score = original_factor_score * factor_importance
                     category_score += factor_score
                     rod_index += 1
-                    
-                    logger.info(f'\t\t\tFactor importance: {factor_importance}')
-                    logger.info(f'\t\t\tOriginal score: {original_factor_score}')
-                    logger.info(f'\t\t\tNew factor score: {factor_score}')
-                    
-            logger.info(f'\tCategory score: {category_score}')
+                                        
             category_scores[offer_id][cat] = category_score
 
     # store 'category_scores' into the cache

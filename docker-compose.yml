@@ -21,9 +21,6 @@ services:
   time-fc:
     container_name: time-fc
     build: ./time-fc/
-    volumes:
-       # we need to mount a single file, not to overwrite the whole folder
-      - ./time-fc/time-fc.py:/code/time-fc.py
     environment:
       FLASK_ENV: development
     depends_on:
@@ -32,8 +29,6 @@ services:
   weather-fc:
     container_name: weather-fc
     build: ./weather-fc
-    volumes:
-      - ./weather-fc/weather.py:/code/weather.py
     environment:
       FLASK_ENV: development
     link:
@@ -42,8 +37,6 @@ services:
   owm_proxy:
     container_name: owm_proxy
     build: ./weather-fc/owm_proxy
-    volumes:
-      - ./weather-fc/owm_proxy/owm_proxy.py:/code/owm_proxy.py
     environment:
       FLASK_ENV: development
     depends_on:
@@ -100,9 +93,6 @@ services:
   panoramic-fc:
     container_name: panoramic-fc
     build: ./panoramic-fc
-    volumes:
-      - ./panoramic-fc/utils.py:/code/utils.py
-      - ./panoramic-fc/panoramic.py:/code/panoramic.py
     environment:
       FLASK_ENV: development
     depends_on:
@@ -113,10 +103,6 @@ services:
     build: ./oc-core/
     environment:
       FLASK_ENV: development
-    volumes:
-      - ./oc-core/oc-core.py:/code/oc-core.py
-      - ./oc-core/oc-core.conf:/code/oc-core.conf
-      - ./oc-core/determinant_factors.py:/code/determinant_factors.py
     ports:
       - 5000:5000
     depends_on:
