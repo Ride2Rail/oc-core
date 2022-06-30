@@ -96,6 +96,8 @@ async def send_requests_to_fcs(request_id):
 @app.route('/<request_id>', methods=['GET'])
 def handle_request(request_id):
 
+    logger.info(f'Determinant factors: {determinant_factors.determinant_factors}')
+
     # call the feature collectors
     t0 = time.time()
     asyncio.run(send_requests_to_fcs(request_id))

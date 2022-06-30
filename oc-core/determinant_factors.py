@@ -36,7 +36,8 @@ determinant_factors = ['duration',
 
 # PLEASE NOTE:
 # the order of the determinant factors within each category determines their ROD weights
-categories = {'quick' : ['duration',
+categories = {'quick' : ['time_to_departure',
+                         'duration',
                          'waiting_time',
                          'total_stops_norm',
                          'traffic_ratio'],
